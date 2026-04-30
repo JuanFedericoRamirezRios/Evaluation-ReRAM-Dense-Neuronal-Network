@@ -1,5 +1,5 @@
 """
-Python 3.11
+Python 3.14
 """
 
 
@@ -42,13 +42,15 @@ class LINEAR_LAYER(): # Identity activation function.
         """
         initialization: "Normal" || "Kaiming He" || "Xavier" 
         """
-        s.W = np.random.randn(outSize, inSize)
+        s.factorInit = 0.001
         if initialization == "Normal":
-            s.W = (s.W*0.001).view(TENSOR)
+            pass
         elif initialization == "Kaiming He":
-            s.W = (s.W / np.sqrt(inSize/2)).view(TENSOR)
+            s.factorInit = 1.0/np.sqrt(inSize/2)
         elif initialization == "Xavier":
-            s.W = (s.W / np.sqrt(inSize)).view(TENSOR)
+            s.factorInit = 1.0/np.sqrt(inSize)
+        s.W = np.random.randn(outSize, inSize) * s.factorInit
+        s.W = s.W.view(TENSOR)
 
         s.b = (np.zeros((outSize, 1))).view(TENSOR) # (outSize, 1)
 
@@ -151,8 +153,8 @@ class SEQUENTIAL(): # Through every layers
             # print(len(layer.Wmin))
             Wmin.append(layer.Wmin)
             
-        Wmax = np.array(Wmax)
-        Wmin = np.array(Wmin)
+        Wmax = np.array(Wmax) # (#LinearLayers, #Learnings)
+        Wmin = np.array(Wmin) # (#LinearLayers, #Learnings)
         # print()
         # print(Wmax.shape)
         # print(Wmin.shape)
