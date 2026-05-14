@@ -54,7 +54,7 @@ class LINEAR_LAYER(): # Identity activation function.
 
         s.b = (np.zeros((outSize, 1))).view(TENSOR) # (outSize, 1)
 
-        s.Wmax = []; s.Wmin = []
+        s.Wmax = []; s.Wmin = []; s.Wmean = []; s.Wstd = []
 
     def __call__(s, input): # Occur when: object(input = X). Forward through the layer.
         """
@@ -87,6 +87,8 @@ class LINEAR_LAYER(): # Identity activation function.
 
         s.Wmax.append(s.W.max())
         s.Wmin.append(s.W.min())
+        s.Wmean.append(s.W.mean())
+        s.Wstd.append(s.W.std())
         
 
 
@@ -140,41 +142,56 @@ class SEQUENTIAL(): # Through every layers
 
             layer.Learning(learningRate)
             
-    def GraphWmaxWmin(s):
-        Wmax = []; Wmin = []
-        
-        
+    def GraphWs(s):
+        Ws = []; Wmax = []; Wmin = []; Wmean = []; Wstd = []
+        factorInit = []
+
         for layer in s.layers:
             if isinstance(layer, RELU_LAYER): continue
-
-            # print(len(layer.Wmax), end= " ")
-            plt
-            Wmax.append(layer.Wmax)
-            # print(len(layer.Wmin))
-            Wmin.append(layer.Wmin)
             
-        Wmax = np.array(Wmax) # (#LinearLayers, #Learnings)
-        Wmin = np.array(Wmin) # (#LinearLayers, #Learnings)
+            factorInit.append(layer.factorInit) # layer.factorInit is a value. It is the standar deviation.
+            Ws.append(layer.W) # layer.W.flatten(): (outSize, inSize)
+            Wmax.append(layer.Wmax) # layer.Wmax: (#Learnings)
+            Wmin.append(layer.Wmin) # layer.Wmin: (#Learnings)
+            Wmean.append(layer.Wmean) # layer.Wmean: (#Learnings)
+            Wstd.append(layer.Wstd) # layer.Wstd: (#Learnings)
+            
+
+        # factorInit: (#LinearLayers) 
+        # Ws: (#LinearLayers, outSize, inSize)
+        # Wmax: (#LinearLayers, #Learnings)
+        # Wmin: (#LinearLayers, #Learnings)
+        # Wmean: (#LinearLayers, #Learnings)
+        # Wstd: (#LinearLayers, #Learnings)
+        
         # print()
+        # print(factorInit.shape)
         # print(Wmax.shape)
         # print(Wmin.shape)
         
-        columns = 3
-        rows = len(Wmax) // columns
-        if (len(Wmax) % columns) > 0:
+        # Columns and rows of subplots
+        cols = 3
+        rows = len(Wmax) // cols
+        if (len(Wmax) % cols) > 0:
             rows = rows + 1
-        for n, Ws in enumerate(Wmax):
-            plt.subplot(rows,columns,n)
+        
+
+        for n in range(len(Wmax)): # for each linear layer
+            plt.subplot(rows*2,cols,n+1) # The subplot start in 1.
+            numLearnings = len(Wmax[n])
+            plt.plot(np.arange(numLearnings),np.full((numLearnings), factorInit[n]), "--") # np.full((numLearnings), factorInit[n]): Size of array=numLearnings, every elements are: factorInit[n].
+            plt.plot(np.arange(numLearnings),np.full((numLearnings), -factorInit[n]), "--")
+            plt.plot(np.arange(numLearnings),Wmax[n], "-")
+            plt.plot(np.arange(numLearnings),Wmin[n], "-")
+            # plt.errorbar(np.arange(numLearnings), Wmean[n], Wstd[n], linestyle='None', marker = ".")
+        for n in range(len(Ws)): # for each linear layer
+            plt.subplot(rows*2,cols,n+1+rows*cols) # The subplot start in 1+rows*cols/2
+            numLearnings = len(Wmax[n])
+            plt.hist(Ws[n].flatten(), bins=30, range=[-factorInit[n]*3, factorInit[n]*3])
+            plt.axvline(x=-factorInit[n]*2, color="red", linestyle='--')
+            plt.axvline(x=factorInit[n]*2, color = "red", linestyle='--')
             
 
-
-        
-        
-        
-
-
-
-    
     def Predict(s, Xbatch): # Predict of a sample
         '''
         Xbatch: (#pixels, 1), data of the image.
