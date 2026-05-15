@@ -42,14 +42,14 @@ class LINEAR_LAYER(): # Identity activation function.
         """
         initialization: "Normal" || "Kaiming He" || "Xavier" 
         """
-        s.factorInit = 0.001
+        s.std = 0.001
         if initialization == "Normal":
             pass
         elif initialization == "Kaiming He":
-            s.factorInit = 1.0/np.sqrt(inSize/2)
+            s.std = 1.0/np.sqrt(inSize/2)
         elif initialization == "Xavier":
-            s.factorInit = 1.0/np.sqrt(inSize)
-        s.W = np.random.randn(outSize, inSize) * s.factorInit
+            s.std = 1.0/np.sqrt(inSize)
+        s.W = np.random.randn(outSize, inSize) * s.std
         s.W = s.W.view(TENSOR)
 
         s.b = (np.zeros((outSize, 1))).view(TENSOR) # (outSize, 1)
@@ -144,12 +144,12 @@ class SEQUENTIAL(): # Through every layers
             
     def GraphWs(s):
         Ws = []; Wmax = []; Wmin = []; Wmean = []; Wstd = []
-        factorInit = []
+        stds = []
 
         for layer in s.layers:
             if isinstance(layer, RELU_LAYER): continue
             
-            factorInit.append(layer.factorInit) # layer.factorInit is a value. It is the standar deviation.
+            stds.append(layer.factorInit) # layer.factorInit is a value. It is the standar deviation.
             Ws.append(layer.W) # layer.W.flatten(): (outSize, inSize)
             Wmax.append(layer.Wmax) # layer.Wmax: (#Learnings)
             Wmin.append(layer.Wmin) # layer.Wmin: (#Learnings)
@@ -178,18 +178,22 @@ class SEQUENTIAL(): # Through every layers
 
         for n in range(len(Wmax)): # for each linear layer
             plt.subplot(rows*2,cols,n+1) # The subplot start in 1.
+            plt.xlabel("Learnings")
+            plt.ylabel("W value")
+            plt.title(f"{n} linear layer")
             numLearnings = len(Wmax[n])
-            plt.plot(np.arange(numLearnings),np.full((numLearnings), factorInit[n]), "--") # np.full((numLearnings), factorInit[n]): Size of array=numLearnings, every elements are: factorInit[n].
-            plt.plot(np.arange(numLearnings),np.full((numLearnings), -factorInit[n]), "--")
+            plt.plot(np.arange(numLearnings),np.full((numLearnings), stds[n]), color="blue",  ls="--", label="hello") # np.full((numLearnings), factorInit[n]): Size of array=numLearnings, every elements are: factorInit[n].
+            plt.plot(np.arange(numLearnings),np.full((numLearnings), -stds[n]), color="blue",  ls="--")
             plt.plot(np.arange(numLearnings),Wmax[n], "-")
             plt.plot(np.arange(numLearnings),Wmin[n], "-")
             # plt.errorbar(np.arange(numLearnings), Wmean[n], Wstd[n], linestyle='None', marker = ".")
         for n in range(len(Ws)): # for each linear layer
             plt.subplot(rows*2,cols,n+1+rows*cols) # The subplot start in 1+rows*cols/2
             numLearnings = len(Wmax[n])
-            plt.hist(Ws[n].flatten(), bins=30, range=[-factorInit[n]*3, factorInit[n]*3])
-            plt.axvline(x=-factorInit[n]*2, color="red", linestyle='--')
-            plt.axvline(x=factorInit[n]*2, color = "red", linestyle='--')
+            plt.hist(Ws[n].flatten(), bins=30, range=[-stds[n]*3, stds[n]*3], label="W")
+            plt.axvline(x=-stds[n]*2, color="red", linestyle='--')
+            plt.axvline(x=stds[n]*2, color = "red", linestyle='--')
+        plt.subplots_adjust(wspace=0.5, hspace=0.5)
             
 
     def Predict(s, Xbatch): # Predict of a sample
