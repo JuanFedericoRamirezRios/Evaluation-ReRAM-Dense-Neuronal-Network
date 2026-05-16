@@ -6,6 +6,8 @@ Python 3.14
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+
 def Normalize(mean, std, data): 
     """
     data: (#samples, #pixels)
@@ -16,6 +18,24 @@ def PlotImage(image):
     plt.figure(figsize=(1,1)) # Figure size 1*100x1*100
     plt.imshow(image, cmap="gray")
     plt.show()
+
+def CreatePotentiationData(Gmin, Gmax, Pmax, m1, m2, noise):
+    p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
+    a = (Pmax*(m1+m2)-2*(Gmax-Gmin))/(Pmax**3)
+    b = (m2-m1-3*a*Pmax**2)/(2*Pmax)
+    Gp = a*p**3 + b*p**2 + m1*p + Gmin
+    GaussNoise = np.random.normal(0, noise, len(p))
+    Gp = Gp + GaussNoise
+    return p, Gp
+
+def CreateDepressionData(Gmin, Gmax, Pmax, m1, m2, noise):
+    p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
+    a = (Pmax*(m1+m2)-2*(Gmin-Gmax))/(Pmax**3)
+    b = (m2-m1-3*a*Pmax**2)/(2*Pmax)
+    Gd = a*p**3 + b*p**2 + m1*p + Gmax
+    GaussNoise = np.random.normal(0, noise, len(p))
+    Gd = Gd + GaussNoise
+    return p, Gd
 
 def GeneratorBatches(images, labels, batch=64, shuffle=True):  # The generators are iterable functions.
     """
