@@ -26,7 +26,7 @@ def CreatePotentiationData(Gmin, Gmax, Pmax, m1, m2, noise):
     Gp = a*p**3 + b*p**2 + m1*p + Gmin
     GaussNoise = np.random.normal(0, noise, len(p))
     Gp = Gp + GaussNoise
-    return p, Gp
+    return Gp
 
 def CreateDepressionData(Gmin, Gmax, Pmax, m1, m2, noise):
     p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
@@ -35,7 +35,7 @@ def CreateDepressionData(Gmin, Gmax, Pmax, m1, m2, noise):
     Gd = a*p**3 + b*p**2 + m1*p + Gmax
     GaussNoise = np.random.normal(0, noise, len(p))
     Gd = Gd + GaussNoise
-    return p, Gd
+    return Gd
 
 def GeneratorBatches(images, labels, batch=64, shuffle=True):  # The generators are iterable functions.
     """
