@@ -9,42 +9,60 @@ g++ -std=c++20 -I -fPIC -shared -o ReRAM.dll ReRAM.cpp
 #include <random>
 #include <fstream>
 
-#include "CppUtilitiesFede.h"
+#include "CppUtilitiesFede.hpp"
 
 using namespace std;
 
-struct ReRAM_LAYER {
-    float* W;
+struct RERAM_LAYER {
+    unsigned ID_layer;
+
+    int* pulsesPot;
+    float* valsWpot;
+    float* valsWpot_smooth;
+
+    int* pulsesDep;
+    float* valsWdep;
+    float* valsWdep_smooth;
+
+    // float* W;
     int rows;
     int columns;
 };
 
-class ReRAM_LAYERs {
+class RERAM_PULSES {
 private:
+vector<RERAM_LAYER> ReRAM_layers;
 
 public:
 
 
-    ReRAM_LAYERs(vector<ReRAM_LAYER>& ReRAM_layers) {
+    RERAM_PULSES() {
         
         
     };
     bool Init() {
         return false;
     };
-        
+    void PushReRAMlayer(RERAM_LAYER ReRAMlayer) {
+        ReRAM_layers.push_back(ReRAMlayer);
+    }
+    ~RERAM_PULSES() {
+
+    }
 };
 
 
 extern "C" {
-    ReRAM_LAYERs* obj;
-    void InitReRAMlayers(vector<ReRAM_LAYER>& ReRAMlayers) {
+    RERAM_PULSES* obj;
+    void InitReRAMlayers() {
         
-        obj = new ReRAM_LAYERs(ReRAMlayers);
+        obj = new RERAM_PULSES();
+    }
+    void LoadReRAMlayer(RERAM_LAYER ReRAMlayer) {
+        obj->PushReRAMlayer(ReRAMlayer);
     }
     
     void FreeSimulatorMemory() {
-        // delete obj->randObj;
         delete obj;
     }
 }
