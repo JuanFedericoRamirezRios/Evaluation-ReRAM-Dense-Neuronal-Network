@@ -1,12 +1,10 @@
 """
-Python 3.14
+ * Python 3.14
+
+ * GPL-3.0 license
 """
-
-
 import matplotlib.pyplot as plt
 import numpy as np
-
-
 
 def Normalize(mean, std, data): 
     """
@@ -18,24 +16,6 @@ def PlotImage(image):
     plt.figure(figsize=(1,1)) # Figure size 1*100x1*100
     plt.imshow(image, cmap="gray")
     plt.show()
-
-def CreatePotentiationData(Gmin, Gmax, Pmax, m1, m2, noise):
-    p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
-    a = (Pmax*(m1+m2)-2*(Gmax-Gmin))/(Pmax**3)
-    b = (m2-m1-3*a*Pmax**2)/(2*Pmax)
-    Gp = a*p**3 + b*p**2 + m1*p + Gmin
-    GaussNoise = np.random.normal(0, noise, len(p))
-    Gp = Gp + GaussNoise
-    return Gp
-
-def CreateDepressionData(Gmin, Gmax, Pmax, m1, m2, noise):
-    p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
-    a = (Pmax*(m1+m2)-2*(Gmin-Gmax))/(Pmax**3)
-    b = (m2-m1-3*a*Pmax**2)/(2*Pmax)
-    Gd = a*p**3 + b*p**2 + m1*p + Gmax
-    GaussNoise = np.random.normal(0, noise, len(p))
-    Gd = Gd + GaussNoise
-    return Gd
 
 def GeneratorBatches(images, labels, batch=64, shuffle=True):  # The generators are iterable functions.
     """
@@ -109,10 +89,6 @@ class LINEAR_LAYER(): # Identity activation function.
         s.Wmin.append(s.W.min())
         s.Wmean.append(s.W.mean())
         s.Wstd.append(s.W.std())
-        
-
-
-
 
 class RELU_LAYER(): # ReLU activation function.
     def __call__(s, z): # Forward through the activation function.
@@ -169,7 +145,7 @@ class SEQUENTIAL(): # Through every layers
         for layer in s.layers:
             if isinstance(layer, RELU_LAYER): continue
             
-            stds.append(layer.factorInit) # layer.factorInit is a value. It is the standar deviation.
+            stds.append(layer.std) # layer.std is a value. It is the standar deviation.
             Ws.append(layer.W) # layer.W.flatten(): (outSize, inSize)
             Wmax.append(layer.Wmax) # layer.Wmax: (#Learnings)
             Wmin.append(layer.Wmin) # layer.Wmin: (#Learnings)
@@ -293,16 +269,3 @@ def Training(model, epochs, trainImages, trainLabels, valiImages, valiLabels, ba
 
 
         print(f'Epoch: {epoch}, Cost of first batch of train images: {firstCost}, Accuracy validation images: {Accuracy(model, valiImages, valiLabels, batch)}')
-
-
-
-
-
-
-    
-
-    
-
-
-    
-
