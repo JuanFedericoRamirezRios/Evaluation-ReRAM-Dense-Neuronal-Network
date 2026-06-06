@@ -66,6 +66,7 @@ public:
         int rows,
         int cols
     ) {
+        
         this->Ppot_max = Ppot_max;
         this->valsWpot = valsWpot;
         this->valsWpot_smooth = valsWpot_smooth;
@@ -76,15 +77,34 @@ public:
 
         this->rows = rows;
         this->cols = cols;
-        for(int row = 0; row < rows; row++)
-            for(int col = 0; col < cols; col++)
+        
+        W = new float*[rows];
+        for(int row = 0; row < rows; row++) {
+            W[row] = new float[cols];
+            for(int col = 0; col < cols; col++) {
                 W[row][col] = 0.0f;
+            }
+        }
+        
+        
 
             
         
     };
+    void PrintReRAMlayer() {
+        cout << endl;
+        for(int row = 0; row < rows; row++) {
+            for(int col = 0; col < cols; col++) {
+                cout << W[row][col] << " ";
+            }
+            cout << endl;
+        }
+    };
     ~RERAM_LAYER() {
-
+        for(int row = 0; row < rows; row++) {
+            delete(W[row]);
+        }
+        delete(W);
     };
     bool Init() {
         return false;
@@ -116,7 +136,7 @@ extern "C" {
         int rows,
         int cols
     ) {
-        
+        // cout << "hi" << endl;
         RERAM_LAYER* ReRAMlayerObj = new RERAM_LAYER (
             // ID_layer,
 
@@ -132,16 +152,22 @@ extern "C" {
             cols
         );
         layers.push_back(ReRAMlayerObj);
+        // cout << "Size of vector layers add layer = " << layers.size() << endl;
 
+    }
+    void PrintReRAMlayer(int numReRAMlayer) {
+            layers[numReRAMlayer]->PrintReRAMlayer();
     }
     void FreeMemory() {
         for(RERAM_LAYER* layer : layers) {
-            delete(layer);
+            delete layer;
+            // delete(layer->W);
         }
         layers.clear();
-        cout << "Size of vector layers after FreeMemory" << layers.size() << endl;
+        // cout << "Size of vector layers after FreeMemory = " << layers.size() << endl;
         // delete ReRAMlayerObj;
     }
+    
     void LearningReRAMlayer(int layerReRAM, float** newWsmooth) {
         /*
         newW: (rows, cols)

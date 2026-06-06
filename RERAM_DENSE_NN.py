@@ -12,7 +12,7 @@ import CLASSIC_DENSE_NN as nn
 import ctypes as c
 import os
 
-# When import this python file
+# When import this python file:
 path = os.path.dirname(os.path.realpath(__file__))
 handle = c.CDLL(path + dllFile, winmode=0) # winmode=0: Use unicode.
 
@@ -64,15 +64,11 @@ def dWreram_pulses(Wsmooth):
 #     ]
 
 def CtypesList(numpyList):
-    return (c.c_int * len(numpyList))(*numpyList.tolist())
+    return (c.c_float * len(numpyList))(*numpyList.tolist())
 
 
 
-def InitReRAMlayer(valsWpot, valsWpot_smooth, valsWdep, valsWdep_smooth, rows, cols):
-    # _valsWpot = CtypesList(valsWpot)
-    # path = os.path.dirname(os.path.realpath(__file__))
-    # handle = c.CDLL(path + "/ReRAM.dll", winmode=0) # winmode=0: Use unicode.
-    # print(str(type(handle)))
+def InitReRAMlayer(valsWpot, valsWpot_smooth, valsWdep, valsWdep_smooth, rows=32, cols=32):
     handle.InitReRAMlayer(
         len(valsWpot), 
         CtypesList(valsWpot), 
@@ -83,6 +79,12 @@ def InitReRAMlayer(valsWpot, valsWpot_smooth, valsWdep, valsWdep_smooth, rows, c
         rows, 
         cols
     )
+
+def PrintReRAMlayer(numReRAMlayer=0):
+    handle.PrintReRAMlayer(numReRAMlayer)
+
+def FreeMemory():
+    handle.FreeMemory()
     
 
 

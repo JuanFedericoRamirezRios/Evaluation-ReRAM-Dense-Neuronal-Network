@@ -104,16 +104,14 @@ valsWdepRe = {"Wexp": valsWdep, "Wsm": valsWdep_smooth, "dWdp": dWdep_dp}
 # plt.figure(figsize=(2,2)) 
 # plt.plot(np.arange(len(valsWdepRe["Wexp"])), valsWdepRe["dWdp"], ".")
 # plt.show()
+#######################################################################
 
-handle = 0
-first = True
-ex = 0
-values = np.array([5, 7, 8, 3, 6, 8, 9, 6, 3, 2])
+values = np.array([5, 7, 8, 3, 6, 8, 9, 6, 3, 2, 1])
+reram.InitReRAMlayer(values, values, values, values, 3, 3)
+values = np.array([3, 6, 8, 9, 6, 3, 2, 1])
+reram.InitReRAMlayer(values, values, values, values, 4, 2)
 
-# array = (c.c_int * 10)(*values.tolist())
+reram.PrintReRAMlayer(0)
+reram.PrintReRAMlayer(1)
 
-# print(ex)
-# reram.InitReRAMlayer(9, array, array, 9, array, array, 10, 10)
-# print(ex)
-# reram.InitReRAMlayer(9, array, array, 9, array, array, 10, 10)
-# print(ex)
+reram.FreeMemory()
