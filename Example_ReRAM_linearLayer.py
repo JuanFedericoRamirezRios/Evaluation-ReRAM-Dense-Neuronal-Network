@@ -111,7 +111,7 @@ reram.InitReRAMlayer(values, values, values, values, 3, 3)
 values = np.array([3, 6, 8, 9, 6, 3, 2, 1])
 reram.InitReRAMlayer(values, values, values, values, 4, 2)
 
-reram.PrintReRAMlayer(0)
-reram.PrintReRAMlayer(1)
+
 
 reram.FreeMemory()
+

@@ -66,8 +66,6 @@ def dWreram_pulses(Wsmooth):
 def CtypesList(numpyList):
     return (c.c_float * len(numpyList))(*numpyList.tolist())
 
-
-
 def InitReRAMlayer(valsWpot, valsWpot_smooth, valsWdep, valsWdep_smooth, rows=32, cols=32):
     handle.InitReRAMlayer(
         len(valsWpot), 

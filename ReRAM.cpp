@@ -152,7 +152,7 @@ extern "C" {
             cols
         );
         layers.push_back(ReRAMlayerObj);
-        // cout << "Size of vector layers add layer = " << layers.size() << endl;
+        cout << "Size of vector layers add layer = " << layers.size() << endl;
 
     }
     void PrintReRAMlayer(int numReRAMlayer) {
@@ -164,7 +164,7 @@ extern "C" {
             // delete(layer->W);
         }
         layers.clear();
-        // cout << "Size of vector layers after FreeMemory = " << layers.size() << endl;
+        cout << "Size of vector layers after FreeMemory = " << layers.size() << endl;
         // delete ReRAMlayerObj;
     }
     
