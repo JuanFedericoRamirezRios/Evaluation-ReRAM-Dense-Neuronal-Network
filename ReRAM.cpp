@@ -86,13 +86,9 @@ public:
             }
         }
         
-        
-
-            
-        
     };
-    void PrintReRAMlayer() {
-        cout << endl;
+    void PrintReRAMlayer(int numReRAMlayer) {
+        cout << "ReRAM layer " << numReRAMlayer << ":" << endl;
         for(int row = 0; row < rows; row++) {
             for(int col = 0; col < cols; col++) {
                 cout << W[row][col] << " ";
@@ -122,7 +118,7 @@ extern "C" {
         
     //     ReRAMlayerObj = new RERAM_PULSES();
     // }
-    void InitReRAMlayer(
+    int InitReRAMlayer(
         // unsigned ID_layer,
 
         int Ppot_max,
@@ -136,7 +132,7 @@ extern "C" {
         int rows,
         int cols
     ) {
-        // cout << "hi" << endl;
+        cout << "Init ReRAM layer: " << layers.size() << endl;
         RERAM_LAYER* ReRAMlayerObj = new RERAM_LAYER (
             // ID_layer,
 
@@ -152,20 +148,21 @@ extern "C" {
             cols
         );
         layers.push_back(ReRAMlayerObj);
-        cout << "Size of vector layers add layer = " << layers.size() << endl;
+        
+        return (int)(layers.size()-1); // Return the index of layer
+        
 
     }
     void PrintReRAMlayer(int numReRAMlayer) {
-            layers[numReRAMlayer]->PrintReRAMlayer();
+            layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
     }
     void FreeMemory() {
         for(RERAM_LAYER* layer : layers) {
             delete layer;
-            // delete(layer->W);
         }
         layers.clear();
         cout << "Size of vector layers after FreeMemory = " << layers.size() << endl;
-        // delete ReRAMlayerObj;
+        ;
     }
     
     void LearningReRAMlayer(int layerReRAM, float** newWsmooth) {

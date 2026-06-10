@@ -16,6 +16,8 @@ import os
 path = os.path.dirname(os.path.realpath(__file__))
 handle = c.CDLL(path + dllFile, winmode=0) # winmode=0: Use unicode.
 
+handle.InitReRAMlayer.restype = c.c_int
+
 def CreatePotentiationData(Gmin, Gmax, Pmax, m1, m2, noise):
     p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
     a = (Pmax*(m1+m2)-2*(Gmax-Gmin))/(Pmax**3)
@@ -66,20 +68,9 @@ def dWreram_pulses(Wsmooth):
 def CtypesList(numpyList):
     return (c.c_float * len(numpyList))(*numpyList.tolist())
 
-def InitReRAMlayer(valsWpot, valsWpot_smooth, valsWdep, valsWdep_smooth, rows=32, cols=32):
-    handle.InitReRAMlayer(
-        len(valsWpot), 
-        CtypesList(valsWpot), 
-        CtypesList(valsWpot_smooth), 
-        len(valsWdep), 
-        CtypesList(valsWdep), 
-        CtypesList(valsWdep_smooth), 
-        rows, 
-        cols
-    )
 
-def PrintReRAMlayer(numReRAMlayer=0):
-    handle.PrintReRAMlayer(numReRAMlayer)
+
+
 
 def FreeMemory():
     handle.FreeMemory()
@@ -87,17 +78,17 @@ def FreeMemory():
 
 
 class RERAM_LAYER(): # RERAM matrix
-    def __init__(s, Gpot, Gdep, facStd=3, inSize=32, outSize=32, initialization = "Kaiming He"):
+    def __init__(s, Gpot, Gdep, facStd=3, inSize=32, outSize=32, initialization = "Kaiming He", stdDev = 0.001):
         """
         Gpot: (#pulsesPotentiation)
         Gdep: (#pulsesDepression)
         facStd: Times of standard desviation for max and min normalization
-        initialization: "Normal" || "Kaiming He" || "Xavier" 
+        initialization: "constant" || "Kaiming He" || "Xavier" 
         WpotRe, WdepRe: Keys: "p", "Wexp", "Wsm", "dWdp"
         """
         
-        s.std = 0.001
-        if initialization == "Normal":
+        s.std = stdDev
+        if initialization == "constant":
             pass
         elif initialization == "Kaiming He":
             s.std = 1.0/np.sqrt(inSize/2)
@@ -113,9 +104,20 @@ class RERAM_LAYER(): # RERAM matrix
         dWpot_dp = dWreram_pulses(valsWpot_smooth)
         dWdep_dp = dWreram_pulses(valsWdep_smooth)
 
+        s.numLayer = handle.InitReRAMlayer(
+            len(valsWpot), 
+            CtypesList(valsWpot), 
+            CtypesList(valsWpot_smooth), 
+            len(valsWdep), 
+            CtypesList(valsWdep), 
+            CtypesList(valsWdep_smooth), 
+            outSize, 
+            inSize
+        )
+
         # Join in dictionaries
-        s.Wpot = {"Wexp": valsWpot, "Wsm": valsWpot_smooth, "dWdp": dWpot_dp}
-        s.Wdep = {"Wexp": valsWdep, "Wsm": valsWdep_smooth, "dWdp": dWdep_dp}
+        # s.Wpot = {"Wexp": valsWpot, "Wsm": valsWpot_smooth, "dWdp": dWpot_dp}
+        # s.Wdep = {"Wexp": valsWdep, "Wsm": valsWdep_smooth, "dWdp": dWdep_dp}
 
         s.W = np.random.randn(outSize, inSize) * s.std
 
@@ -125,6 +127,10 @@ class RERAM_LAYER(): # RERAM matrix
 
         s.Wmax = []; s.Wmin = []; s.Wmean = []; s.Wstd = []
     
+    def PrintReRAMlayer(s):
+        handle.PrintReRAMlayer(s.numLayer)
+
+
     def Potentiation(W, Wnew):
         pass
 

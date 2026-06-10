@@ -7,7 +7,7 @@ import numpy as np
 from GET_MNIST import ObtainImages, ObtainLabels
 import matplotlib.pyplot as plt
 import CLASSIC_DENSE_NN as nn
-import RERAM_DENSE_NN as reram
+import RERAM_DENSE_NN as r
 
 ##################################################################
 np.random.seed(3)
@@ -59,7 +59,7 @@ Mlin = (Gmax-Gmin)/Ppot_max
 m1 = Mlin*3
 m2 = Mlin*0.2
 noise = (Gmax-Gmin)*0.02
-Gpot = reram.CreatePotentiationData(Gmin, Gmax, Ppot_max, m1, m2, noise)
+Gpot = r.CreatePotentiationData(Gmin, Gmax, Ppot_max, m1, m2, noise)
 # plt.plot(Ppot, Gpot, ".")
 
 # Depression
@@ -68,7 +68,7 @@ Mlin = (Gmin-Gmax)/Pdep_max
 m1 = Mlin*2
 m2 = Mlin*0
 noise = (Gmax-Gmin)*0.02
-Gdep = reram.CreateDepressionData(Gmin, Gmax, Pdep_max, m1, m2, noise)
+Gdep = r.CreateDepressionData(Gmin, Gmax, Pdep_max, m1, m2, noise)
 # plt.plot(Pdep, Gdep, ".")
 #######################################################################
 # Charge Ppot (pulses) and Gpot <- Experimental data
@@ -76,14 +76,14 @@ Gdep = reram.CreateDepressionData(Gmin, Gmax, Pdep_max, m1, m2, noise)
 #                .
 #                .
 
-valsWpot = reram.Normalization(Gpot, -0.01, 0.01)
-valsWdep = reram.Normalization(Gdep, -0.01, 0.01)
+valsWpot = r.Normalization(Gpot, -0.01, 0.01)
+valsWdep = r.Normalization(Gdep, -0.01, 0.01)
 
-valsWpot_smooth = reram.SmoothSG(valsWpot, 3)
-valsWdep_smooth = reram.SmoothSG(valsWdep, 3)
+valsWpot_smooth = r.SmoothSG(valsWpot, 3)
+valsWdep_smooth = r.SmoothSG(valsWdep, 3)
 
-dWpot_dp = reram.dWreram_pulses(valsWpot_smooth)
-dWdep_dp = reram.dWreram_pulses(valsWdep_smooth)
+dWpot_dp = r.dWreram_pulses(valsWpot_smooth)
+dWdep_dp = r.dWreram_pulses(valsWdep_smooth)
 
 # Join in dictionaries
 valsWpotRe = {"Wexp": valsWpot, "Wsm": valsWpot_smooth, "dWdp": dWpot_dp}
@@ -106,12 +106,18 @@ valsWdepRe = {"Wexp": valsWdep, "Wsm": valsWdep_smooth, "dWdp": dWdep_dp}
 # plt.show()
 #######################################################################
 
-values = np.array([5, 7, 8, 3, 6, 8, 9, 6, 3, 2, 1])
-reram.InitReRAMlayer(values, values, values, values, 3, 3)
-values = np.array([3, 6, 8, 9, 6, 3, 2, 1])
-reram.InitReRAMlayer(values, values, values, values, 4, 2)
+# values = np.array([5, 7, 8, 3, 6, 8, 9, 6, 3, 2, 1])
+# reram.InitReRAMlayer(values, values, values, values, 3, 3)
+# values = np.array([3, 6, 8, 9, 6, 3, 2, 1])
+# reram.InitReRAMlayer(values, values, values, values, 4, 2)
+
+layer1 = r.RERAM_LAYER(Gpot, Gdep, 3, 3, 4)
+# layer1.PrintReRAMlayer()
+
+layer2 = r.RERAM_LAYER(Gpot, Gdep, 3, 4, 3)
+# layer2.PrintReRAMlayer()
 
 
 
-reram.FreeMemory()
+r.FreeMemory()
 
