@@ -65,12 +65,11 @@ def dWreram_pulses(Wsmooth):
 #         ("rows", c.c_int)
 #     ]
 
-def CtypesList(numpyList):
-    return (c.c_float * len(numpyList))(*numpyList.tolist())
+def CtypesVector(numpyList):
+    return (c.c_float * numpyList.shape[0])(*numpyList)
 
-
-
-
+def CtypesFlatMatrix(numpyArray):
+    return (c.c_float * (numpyArray.shape[0] * numpyArray.shape[1]))(*numpyArray.flatten())
 
 def FreeMemory():
     handle.FreeMemory()
@@ -104,22 +103,33 @@ class RERAM_LAYER(): # RERAM matrix
         dWpot_dp = dWreram_pulses(valsWpot_smooth)
         dWdep_dp = dWreram_pulses(valsWdep_smooth)
 
+        # print(valsWpot_smooth)
+        # print(valsWpot)
+
         s.numLayer = handle.InitReRAMlayer(
             len(valsWpot), 
-            CtypesList(valsWpot), 
-            CtypesList(valsWpot_smooth), 
+            CtypesVector(valsWpot), 
+            CtypesVector(valsWpot_smooth), 
             len(valsWdep), 
-            CtypesList(valsWdep), 
-            CtypesList(valsWdep_smooth), 
+            CtypesVector(valsWdep), 
+            CtypesVector(valsWdep_smooth), 
             outSize, 
             inSize
         )
+
 
         # Join in dictionaries
         # s.Wpot = {"Wexp": valsWpot, "Wsm": valsWpot_smooth, "dWdp": dWpot_dp}
         # s.Wdep = {"Wexp": valsWdep, "Wsm": valsWdep_smooth, "dWdp": dWdep_dp}
 
         s.W = np.random.randn(outSize, inSize) * s.std
+
+        # for row in range(outSize):
+        #     for col in range(inSize):
+        #         s.W[row][col] = row*inSize+col
+
+
+        s.InitPotentiation()
 
         s.W = s.W.view(nn.TENSOR)
 
@@ -129,10 +139,11 @@ class RERAM_LAYER(): # RERAM matrix
     
     def PrintReRAMlayer(s):
         handle.PrintReRAMlayer(s.numLayer)
+        
 
-
-    def Potentiation(W, Wnew):
-        pass
+    def InitPotentiation(s):
+        # print(CtypesArray(s.W))
+        handle.InitPotentiation(s.numLayer, CtypesFlatMatrix(s.W))
 
 
     def __call__(s, input): # Occur when: object(input = X). Forward through the layer.
