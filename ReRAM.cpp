@@ -87,24 +87,25 @@ public:
         
         for(int row = 0; row < rows; row++) {
             for(int col = 0; col < cols; col++) {
-                // W[row*cols + col] = row*cols + col;
                 W[row*cols + col] = valsWpot[0];
-                
             }
         }
         
     };
-    /* float** */ void InitPotentiation(float* newW) {
+    float* InitPotentiation(float* newW) {
         for(int row = 0; row < rows; row++) {
             for(int col = 0; col < cols; col++) {
+                
                 for(int p = 0; p < Ppot_max; p++) {
                     totalPulses++;
-                    if(newW[row*cols + col] > valsWpot_smooth[p]) {
+                    if(newW[row*cols + col] > valsWpot[p]) {
                         W[row*cols + col] = valsWpot[p];
                     }
+                    
                 }
             }
         }
+        return W;
     };
     void PrintReRAMlayer(int numReRAMlayer) {
         cout << "ReRAM layer " << numReRAMlayer << ":" << endl;
@@ -118,7 +119,7 @@ public:
     };
     ~RERAM_LAYER() {
         // for(int row = 0; row < rows; row++) {
-            delete(W);
+            // delete(W);
         // }
         delete(W);
     };
@@ -171,9 +172,10 @@ extern "C" {
         
 
     }
-    /* float** */ void InitPotentiation(int numReRAMlayer, float* newW) {
-        layers[numReRAMlayer]->InitPotentiation(newW);
-        layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
+    float* InitPotentiation(int numReRAMlayer, float* newW) {
+        return layers[numReRAMlayer]->InitPotentiation(newW);
+        // layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
+
 
     }
     void PrintReRAMlayer(int numReRAMlayer) {

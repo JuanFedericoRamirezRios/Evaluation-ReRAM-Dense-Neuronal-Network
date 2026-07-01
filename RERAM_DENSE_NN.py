@@ -17,6 +17,7 @@ path = os.path.dirname(os.path.realpath(__file__))
 handle = c.CDLL(path + dllFile, winmode=0) # winmode=0: Use unicode.
 
 handle.InitReRAMlayer.restype = c.c_int
+handle.InitPotentiation.restype = c.POINTER(c.c_float)
 
 def CreatePotentiationData(Gmin, Gmax, Pmax, m1, m2, noise):
     p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
@@ -65,11 +66,24 @@ def dWreram_pulses(Wsmooth):
 #         ("rows", c.c_int)
 #     ]
 
-def CtypesVector(numpyList):
+def NpVectorToC(numpyList):
     return (c.c_float * numpyList.shape[0])(*numpyList)
 
-def CtypesFlatMatrix(numpyArray):
+def NpArrayToC(numpyArray):
     return (c.c_float * (numpyArray.shape[0] * numpyArray.shape[1]))(*numpyArray.flatten())
+
+def CtoNpArray(cArray, rows, cols):
+    # W = np.array(cArray)
+    l = cArray[:(rows*cols)] # : -> pass to list
+    npArray = np.zeros((rows, cols))
+    for row in range(rows):
+        for col in range(cols):
+            npArray[row,col] = l[row*cols + col]
+    
+    print(npArray)
+    return npArray
+
+    
 
 def FreeMemory():
     handle.FreeMemory()
@@ -108,11 +122,11 @@ class RERAM_LAYER(): # RERAM matrix
 
         s.numLayer = handle.InitReRAMlayer(
             len(valsWpot), 
-            CtypesVector(valsWpot), 
-            CtypesVector(valsWpot_smooth), 
+            NpVectorToC(valsWpot), 
+            NpVectorToC(valsWpot_smooth), 
             len(valsWdep), 
-            CtypesVector(valsWdep), 
-            CtypesVector(valsWdep_smooth), 
+            NpVectorToC(valsWdep), 
+            NpVectorToC(valsWdep_smooth), 
             outSize, 
             inSize
         )
@@ -129,7 +143,8 @@ class RERAM_LAYER(): # RERAM matrix
         #         s.W[row][col] = row*inSize+col
 
 
-        s.InitPotentiation()
+        _ = s.InitPotentiation()
+        CtoNpArray(_, outSize, inSize)
 
         s.W = s.W.view(nn.TENSOR)
 
@@ -143,7 +158,7 @@ class RERAM_LAYER(): # RERAM matrix
 
     def InitPotentiation(s):
         # print(CtypesArray(s.W))
-        handle.InitPotentiation(s.numLayer, CtypesFlatMatrix(s.W))
+        return handle.InitPotentiation(s.numLayer, NpArrayToC(s.W))
 
 
     def __call__(s, input): # Occur when: object(input = X). Forward through the layer.
