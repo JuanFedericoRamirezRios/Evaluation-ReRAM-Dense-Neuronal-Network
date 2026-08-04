@@ -17,7 +17,7 @@ path = os.path.dirname(os.path.realpath(__file__))
 handle = c.CDLL(path + dllFile, winmode=0) # winmode=0: Use unicode.
 
 handle.InitReRAMlayer.restype = c.c_int
-handle.InitPotentiation.restype = c.POINTER(c.c_float)
+handle.ChangeWs.restype = c.POINTER(c.c_float)
 
 def CreatePotentiationData(Gmin, Gmax, Pmax, m1, m2, noise):
     p = np.arange(0, Pmax+1) # [0,1,...,Pmax]
@@ -120,7 +120,7 @@ class RERAM_LAYER(): # RERAM matrix
         # print(valsWpot_smooth)
         # print(valsWpot)
 
-        s.numLayer = handle.InitReRAMlayer(
+        s.idLayer = handle.InitReRAMlayer(
             len(valsWpot), 
             NpVectorToC(valsWpot), 
             NpVectorToC(valsWpot_smooth), 
@@ -143,7 +143,7 @@ class RERAM_LAYER(): # RERAM matrix
         #         s.W[row][col] = row*inSize+col
 
 
-        _ = s.InitPotentiation()
+        _ = s.ChangeWs()
         CtoNpArray(_, outSize, inSize)
 
         s.W = s.W.view(nn.TENSOR)
@@ -153,12 +153,12 @@ class RERAM_LAYER(): # RERAM matrix
         s.Wmax = []; s.Wmin = []; s.Wmean = []; s.Wstd = []
     
     def PrintReRAMlayer(s):
-        handle.PrintReRAMlayer(s.numLayer)
+        handle.PrintReRAMlayer(s.idLayer)
         
 
-    def InitPotentiation(s):
+    def ChangeWs(s):
         # print(CtypesArray(s.W))
-        return handle.InitPotentiation(s.numLayer, NpArrayToC(s.W))
+        return handle.ChangeWs(s.idLayer, NpArrayToC(s.W))
 
 
     def __call__(s, input): # Occur when: object(input = X). Forward through the layer.

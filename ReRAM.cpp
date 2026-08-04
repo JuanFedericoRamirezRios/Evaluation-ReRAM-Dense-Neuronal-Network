@@ -50,6 +50,8 @@ private:
     int rows;
     int cols;
 
+    float Wmin, Wmax;
+
 public:
     // RERAM_PULSES() {
         
@@ -81,6 +83,22 @@ public:
         this->rows = rows;
         this->cols = cols;
 
+        Wmin = 0.0f;
+        Wmax = 0.0f;
+        for(int n = 0; n < Ppot_max; n++) {
+            if(valsWpot[n] < Wmin) Wmin = valsWpot[n];
+            if(valsWpot[n] > Wmax) Wmax = valsWpot[n];
+        }
+        for(int n = 0; n < Pdep_max; n++) {
+            if(valsWdep[n] < Wmin) Wmin = valsWdep[n];
+            if(valsWdep[n] > Wmax) Wmax = valsWdep[n];
+        }
+        
+
+        // cout << Wmin << " " << Wmax << endl;
+
+
+
         totalPulses = 0;
         
         W = new float[rows*cols];
@@ -88,22 +106,52 @@ public:
         for(int row = 0; row < rows; row++) {
             for(int col = 0; col < cols; col++) {
                 W[row*cols + col] = valsWpot[0];
+                // cout << W[row*cols + col] << " ";
             }
+            // cout << endl;
         }
-        
+        // cout << endl;
+        // for(int n = 0; n < Ppot_max; n++) {
+        //     cout << valsWpot[n] << " ";
+        // }
+        // cout << endl;
+
     };
-    float* InitPotentiation(float* newW) {
-        for(int row = 0; row < rows; row++) {
-            for(int col = 0; col < cols; col++) {
-                
-                for(int p = 0; p < Ppot_max; p++) {
+    
+    void ChangeW(float& W, float newW) {
+        float Wcurrent = W;      
+        if(W < newW) {
+            for(int p = 0; p < Ppot_max; p++) {
+                if(valsWpot[p] > Wcurrent) {
                     totalPulses++;
-                    if(newW[row*cols + col] > valsWpot[p]) {
-                        W[row*cols + col] = valsWpot[p];
-                    }
-                    
+                    W = valsWpot[p];
+                    // cout << W << " ";
+                    if(W >= newW) break;
                 }
             }
+        } else {
+            for(int p = 0; p < Pdep_max; p++) {
+                if(valsWdep[p] < Wcurrent) {
+                    totalPulses++;
+                    W = valsWdep[p];
+                    // cout << W << " ";
+                    if(W <= newW) break;
+                }
+            }
+        }
+        // cout << endl;
+
+        /******* Check min and max W ********/
+        if(W < Wmin) W = Wmin;
+        if(W > Wmax) W = Wmax;        
+    }
+    float* ChangeWs(float* newWs) {
+        for(int row = 0; row < rows; row++) {
+            for(int col = 0; col < cols; col++) {
+                ChangeW(W[row*cols + col], newWs[row*cols + col]);
+                cout << newWs[row*cols + col] << " ";
+            }
+            cout << endl;
         }
         return W;
     };
@@ -168,12 +216,20 @@ extern "C" {
         );
         layers.push_back(ReRAMlayerObj);
         
+        // cout << "Example depression:" << endl;
+        // float _ = 0.0;
+        // cout << "init: " << _ << endl;
+        // ReRAMlayerObj->ChangeW(_, -1.0);
+        // cout << "final: " << _ << endl;
+        // cout << endl;
+
+
         return (int)(layers.size()-1); // Return the index of layer
         
 
     }
-    float* InitPotentiation(int numReRAMlayer, float* newW) {
-        return layers[numReRAMlayer]->InitPotentiation(newW);
+    float* ChangeWs(int numReRAMlayer, float* newW) {
+        return layers[numReRAMlayer]->ChangeWs(newW);
         // layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
 
 
@@ -197,7 +253,6 @@ extern "C" {
         */
         
 
-       
 
     }
 
