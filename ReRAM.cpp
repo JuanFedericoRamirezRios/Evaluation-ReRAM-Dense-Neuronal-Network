@@ -37,13 +37,10 @@ private:
 
     int totalPulses;
 
-    int Ppot_max;
-    float* valsWpot; // (Ppot_max): include experimental noise.
-    float* valsWpot_smooth; // (Ppot_max): without experimental noise.
+    
+    
 
-    int Pdep_max;
-    float* valsWdep; // (Pdep_max)
-    float* valsWdep_smooth; // (Pdep_max)
+    
 
     float* W;
     // float** Wsmooth;
@@ -53,6 +50,17 @@ private:
     float Wmin, Wmax;
 
 public:
+    int Ppot_max;
+    float* valsWpot; // (Ppot_max+1): include experimental noise.
+    float* valsWpot_smooth; // (Ppot_max+1): without experimental noise.
+
+    int Pdep_max;
+    float* valsWdep; // (Pdep_max+1)
+    float* valsWdep_smooth; // (Pdep_max+1)
+
+
+
+
     // RERAM_PULSES() {
         
         
@@ -110,15 +118,23 @@ public:
             }
             // cout << endl;
         }
+
         // cout << endl;
         // for(int n = 0; n < Ppot_max; n++) {
-        //     cout << valsWpot[n] << " ";
+        //     cout << this->valsWpot[n] << " ";
         // }
         // cout << endl;
 
     };
     
     void ChangeW(float& W, float newW) {
+
+        // cout << endl;
+        // for(int n = 0; n < Ppot_max; n++) {
+        //     cout << valsWpot[n] << " ";
+        // }
+        // cout << endl;
+
         float Wcurrent = W;      
         if(W < newW) {
             for(int p = 0; p < Ppot_max; p++) {
@@ -126,7 +142,10 @@ public:
                     totalPulses++;
                     W = valsWpot[p];
                     // cout << W << " ";
-                    if(W >= newW) break;
+                    if(W >= newW) {
+                        cout << valsWpot[p] << " ";
+                        break;
+                    }
                 }
             }
         } else {
@@ -135,24 +154,39 @@ public:
                     totalPulses++;
                     W = valsWdep[p];
                     // cout << W << " ";
-                    if(W <= newW) break;
+                    if(W <= newW) {
+                        cout << valsWpot[p] << " ";
+                        break;
+                    }
                 }
             }
         }
+        
+
         // cout << endl;
 
         /******* Check min and max W ********/
-        if(W < Wmin) W = Wmin;
-        if(W > Wmax) W = Wmax;        
+        // if(W < Wmin) W = Wmin;
+        // if(W > Wmax) W = Wmax;
+
+        
     }
     float* ChangeWs(float* newWs) {
+
+        // cout << endl;
+        // for(int n = 0; n < Ppot_max; n++) {
+        //     cout << valsWpot[n] << " ";
+        // }
+        // cout << endl;
+
         for(int row = 0; row < rows; row++) {
             for(int col = 0; col < cols; col++) {
                 ChangeW(W[row*cols + col], newWs[row*cols + col]);
-                cout << newWs[row*cols + col] << " ";
+                // cout << W[row*cols + col] << " ";
             }
             cout << endl;
         }
+
         return W;
     };
     void PrintReRAMlayer(int numReRAMlayer) {
@@ -169,7 +203,9 @@ public:
         // for(int row = 0; row < rows; row++) {
             // delete(W);
         // }
+        
         delete(W);
+
     };
     
     // void PushReRAMlayer(RERAM_VALS ReRAMlayer) {
@@ -215,21 +251,35 @@ extern "C" {
             cols
         );
         layers.push_back(ReRAMlayerObj);
+
+        int idLayer = (int)(layers.size()-1);
         
         // cout << "Example depression:" << endl;
-        // float _ = 0.0;
+        // float _ = -2.44949;
         // cout << "init: " << _ << endl;
-        // ReRAMlayerObj->ChangeW(_, -1.0);
+        // layers[idLayer]->ChangeW(_, -1.52783);
         // cout << "final: " << _ << endl;
         // cout << endl;
 
+        cout << endl;
+        cout << layers[idLayer]->valsWdep[0] << endl;
+        cout << endl;
 
-        return (int)(layers.size()-1); // Return the index of layer
+
+        return idLayer; // Return the index of layer
         
 
     }
-    float* ChangeWs(int numReRAMlayer, float* newW) {
-        return layers[numReRAMlayer]->ChangeWs(newW);
+    float* ChangeWs(int idLayer, float* newW) {
+
+
+        cout << endl;
+        cout << idLayer << endl;
+        cout << layers[idLayer]->valsWdep[10] << endl;
+        cout << endl;
+        
+        
+        return layers[idLayer]->ChangeWs(newW);
         // layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
 
 
@@ -238,12 +288,14 @@ extern "C" {
             layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
     }
     void FreeMemory() {
+        
         for(RERAM_LAYER* layer : layers) {
             delete layer;
         }
+        
         layers.clear();
+
         cout << "Size of vector layers after FreeMemory = " << layers.size() << endl;
-        ;
     }
     
     void LearningReRAMlayer(int layerReRAM, float** newWsmooth) {
