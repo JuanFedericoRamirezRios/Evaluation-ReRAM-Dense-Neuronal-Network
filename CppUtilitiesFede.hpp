@@ -7,11 +7,9 @@
 
 using namespace std;
 
-class UTILS_FEDE {
-private:
+namespace UTILS_FEDE {
 
-public:
-    static bool LoadParams(string* params, string filePath, int numParams) {
+    bool LoadParams(string* params, string filePath, int numParams) {
         /*
         The format is "...:(space)value(line break)"
         Exms: 
@@ -56,7 +54,7 @@ public:
         
         return true;
     };
-    static streampos ObtainLastPosFile(string filePath) {
+    streampos ObtainLastPosFile(string filePath) {
         streampos lastPosFile;
         ifstream inFile(filePath);
         if(!inFile) {
@@ -68,18 +66,18 @@ public:
         inFile.close();
         return lastPosFile;
     };
-    static string FloatToString(float num, int precision) {
+    string FloatToString(float num, int precision) {
         ostringstream oString;
         oString << std::setprecision(precision) << (num);
         return oString.str();
     };
-    static ofstream OutInLastPos(string filePath) { // Be carefull, you must close ofstream.
+    ofstream OutInLastPos(string filePath) { // Be carefull, you must close ofstream.
         streampos lastPosFile = ObtainLastPosFile(filePath);
         ofstream outFile(filePath, ios::out | ios::in); // ios::out | ios::in avoid to erase contenent of file.
         outFile.seekp(lastPosFile);
         return outFile;
     };
-    static string CppVersion() {
+    string CppVersion() {
         long standard = __cplusplus;
         string version;
         if (standard == 199711L) version = "C++98/C++03";
@@ -92,6 +90,13 @@ public:
         else version = "Previous to C++98 or custom: " + to_string(standard) + " standard";
         return version;
     };
+    float* Copy1DfloatArray(const float* array, size_t size) {
+        float* copy = new float[size];
+        for(int n = 0; n < size; n++) {
+            copy[n] = array[n];
+        }
+        return copy;
+    }
 };
 class RANDOM_FEDE {
 private:

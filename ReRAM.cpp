@@ -13,80 +13,49 @@ g++ -std=c++20 -I -fPIC -shared -o ReRAM.dll ReRAM.cpp
 #include "CppUtilitiesFede.hpp"
 
 using namespace std;
+using namespace UTILS_FEDE;
 
-// struct RERAM_VALS {
-//     unsigned ID_layer;
-
-//     int* pulsesPot; // (Ppot_max+1)
-//     float* valsWpot; // (Ppot_max+1)
-//     float* valsWpot_smooth; // (Ppot_max+1)
-
-//     int* pulsesDep; // (Pdep_max+1)
-//     float* valsWdep; // (Pdep_max+1)
-//     float* valsWdep_smooth; // (Pdep_max+1)
-
-//     // float* W;
-//     int rows;
-//     int columns;
-// };
 
 class RERAM_LAYER {
 private:
-    // vector<RERAM_VALS> ReRAM_layers;
-    // unsigned ID_layer;
-
     int totalPulses;
 
-    
-    
-
-    
-
     float* W;
-    // float** Wsmooth;
     int rows;
     int cols;
 
     float Wmin, Wmax;
-
 public:
     int Ppot_max;
-    float* valsWpot; // (Ppot_max+1): include experimental noise.
-    float* valsWpot_smooth; // (Ppot_max+1): without experimental noise.
+    float* valsWpot; // (Ppot_max): include experimental noise.
+    float* valsWpot_smooth; // (Ppot_max): without experimental noise.
 
     int Pdep_max;
-    float* valsWdep; // (Pdep_max+1)
-    float* valsWdep_smooth; // (Pdep_max+1)
+    float* valsWdep; // (Pdep_max)
+    float* valsWdep_smooth; // (Pdep_max)
 
-
-
-
-    // RERAM_PULSES() {
-        
-        
-    // };
     RERAM_LAYER(
         // unsigned ID_layer,
 
         int Ppot_max,
-        float* valsWpot, // (Ppot_max+1)
-        float* valsWpot_smooth, // (Ppot_max+1)
+        const float* valsWpot, // (Ppot_max)
+        const float* valsWpot_smooth, // (Ppot_max)
 
         int Pdep_max,
-        float* valsWdep, // (Pdep_max+1)
-        float* valsWdep_smooth, // (Pdep_max+1)
+        const float* valsWdep, // (Pdep_max)
+        const float* valsWdep_smooth, // (Pdep_max)
 
         int rows,
         int cols
     ) {
         
         this->Ppot_max = Ppot_max;
-        this->valsWpot = valsWpot;
-        this->valsWpot_smooth = valsWpot_smooth;
+        this->valsWpot = Copy1DfloatArray(valsWpot, Ppot_max);
+        this->valsWpot_smooth = Copy1DfloatArray(valsWpot_smooth, Ppot_max);
 
         this->Pdep_max = Pdep_max;
-        this->valsWdep = valsWdep;
-        this->valsWdep_smooth = valsWdep_smooth;
+        this->valsWdep = Copy1DfloatArray(valsWdep, Pdep_max);
+        this->valsWdep_smooth = Copy1DfloatArray(valsWdep_smooth, Pdep_max);
 
         this->rows = rows;
         this->cols = cols;
@@ -101,11 +70,6 @@ public:
             if(valsWdep[n] < Wmin) Wmin = valsWdep[n];
             if(valsWdep[n] > Wmax) Wmax = valsWdep[n];
         }
-        
-
-        // cout << Wmin << " " << Wmax << endl;
-
-
 
         totalPulses = 0;
         
@@ -128,13 +92,6 @@ public:
     };
     
     void ChangeW(float& W, float newW) {
-
-        // cout << endl;
-        // for(int n = 0; n < Ppot_max; n++) {
-        //     cout << valsWpot[n] << " ";
-        // }
-        // cout << endl;
-
         float Wcurrent = W;      
         if(W < newW) {
             for(int p = 0; p < Ppot_max; p++) {
@@ -166,28 +123,28 @@ public:
         // cout << endl;
 
         /******* Check min and max W ********/
-        // if(W < Wmin) W = Wmin;
-        // if(W > Wmax) W = Wmax;
+        if(W < Wmin) W = Wmin;
+        if(W > Wmax) W = Wmax;
 
         
     }
-    float* ChangeWs(float* newWs) {
+    float* ChangeWs(const float* newWs) {
+        cout << endl;
+        cout << Ppot_max << endl;
+        for(int n = 0; n < Ppot_max; n++) {
+            cout << valsWpot[n] << " ";
+        }
+        cout << endl;
 
-        // cout << endl;
-        // for(int n = 0; n < Ppot_max; n++) {
-        //     cout << valsWpot[n] << " ";
-        // }
-        // cout << endl;
 
         for(int row = 0; row < rows; row++) {
             for(int col = 0; col < cols; col++) {
                 ChangeW(W[row*cols + col], newWs[row*cols + col]);
-                // cout << W[row*cols + col] << " ";
             }
             cout << endl;
         }
 
-        return W;
+        return Copy1DfloatArray(W, rows*cols);
     };
     void PrintReRAMlayer(int numReRAMlayer) {
         cout << "ReRAM layer " << numReRAMlayer << ":" << endl;
@@ -200,37 +157,26 @@ public:
         cout << endl;
     };
     ~RERAM_LAYER() {
-        // for(int row = 0; row < rows; row++) {
-            // delete(W);
-        // }
         
         delete(W);
+        delete(valsWpot); delete(valsWpot_smooth);
+        delete(valsWdep); delete(valsWdep_smooth);
 
     };
-    
-    // void PushReRAMlayer(RERAM_VALS ReRAMlayer) {
-    //     ReRAM_layers.push_back(ReRAMlayer);
-    // };
 };
 
 
 extern "C" {
     vector<RERAM_LAYER*> layers;
-    // RERAM_LAYER* ReRAMlayerObj;
-    // void InitReRAMlayers() {
-        
-    //     ReRAMlayerObj = new RERAM_PULSES();
-    // }
+    
     int InitReRAMlayer(
-        // unsigned ID_layer,
-
         int Ppot_max,
-        float* valsWpot, // (Ppot_max+1)
-        float* valsWpot_smooth, // (Ppot_max+1)
+        float* valsWpot, // (Ppot_max)
+        float* valsWpot_smooth, // (Ppot_max)
 
         int Pdep_max,
-        float* valsWdep, // (Pdep_max+1)
-        float* valsWdep_smooth, // (Pdep_max+1)
+        float* valsWdep, // (Pdep_max)
+        float* valsWdep_smooth, // (Pdep_max)
 
         int rows,
         int cols
@@ -240,12 +186,12 @@ extern "C" {
             // ID_layer,
 
             Ppot_max,
-            valsWpot, // (Ppot_max+1)
-            valsWpot_smooth, // (Ppot_max+1)
+            valsWpot, // (Ppot_max)
+            valsWpot_smooth, // (Ppot_max)
 
             Pdep_max,
-            valsWdep, // (Pdep_max+1)
-            valsWdep_smooth, // (Pdep_max+1)
+            valsWdep, // (Pdep_max)
+            valsWdep_smooth, // (Pdep_max)
 
             rows,
             cols
@@ -262,7 +208,7 @@ extern "C" {
         // cout << endl;
 
         cout << endl;
-        cout << layers[idLayer]->valsWdep[0] << endl;
+        cout << layers[idLayer]->valsWpot[0] << endl;
         cout << endl;
 
 
@@ -271,18 +217,11 @@ extern "C" {
 
     }
     float* ChangeWs(int idLayer, float* newW) {
-
-
         cout << endl;
-        cout << idLayer << endl;
-        cout << layers[idLayer]->valsWdep[10] << endl;
+        cout << layers[idLayer]->valsWpot[0] << endl;
         cout << endl;
-        
-        
+    
         return layers[idLayer]->ChangeWs(newW);
-        // layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
-
-
     }
     void PrintReRAMlayer(int numReRAMlayer) {
             layers[numReRAMlayer]->PrintReRAMlayer(numReRAMlayer);
@@ -298,7 +237,7 @@ extern "C" {
         cout << "Size of vector layers after FreeMemory = " << layers.size() << endl;
     }
     
-    void LearningReRAMlayer(int layerReRAM, float** newWsmooth) {
+    void LearningReRAMlayer(int layerReRAM, float* newWsmooth) {
         /*
         newW: (rows, cols)
         potentiation: (rows, cols), if potentiation = false -> depression.
